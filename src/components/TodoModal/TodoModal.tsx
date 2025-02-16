@@ -28,7 +28,7 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
     };
 
     loadData();
-  }, [todo?.userId]);
+  }, [todo]);
 
   return (
     <>
