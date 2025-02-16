@@ -18,6 +18,7 @@ export const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [completeStatus, setCompleteStatus] = useState<string>('all');
   const [searchInput, setSearchInput] = useState<string>('');
+  const [error, setError] = useState('');
 
   const todo = todos?.find(t => t.id === selectedTask);
   let filteredTodos = todos;
@@ -54,12 +55,12 @@ export const App: React.FC = () => {
           setIsLoaded(true);
         })
         .catch(() => {
-          throw new Error('No todos found');
+          setError('Todos cant be loaded. Try again later');
         });
     };
 
     loadData();
-  }, [todo?.userId]);
+  }, []);
 
   return (
     <>
@@ -67,7 +68,7 @@ export const App: React.FC = () => {
         <div className="container">
           <div className="box">
             <h1 className="title">Todos:</h1>
-
+            {error !== '' && <p>{error}</p>}
             <div className="block">
               <TodoFilter
                 searchInput={searchInput}

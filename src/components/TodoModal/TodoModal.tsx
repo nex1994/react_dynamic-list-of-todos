@@ -12,6 +12,7 @@ type Props = {
 export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userLoaded, setUserLoaded] = useState<boolean>(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setUserLoaded(false);
@@ -22,7 +23,7 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
           setUserLoaded(true);
         })
         .catch(() => {
-          throw new Error('No user found');
+          setError('User cant be found. Please try again later');
         });
     };
 
@@ -69,7 +70,11 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
 
               {' by '}
 
-              <a href="mailto:Sincere@april.biz">{user?.name}</a>
+              {error === '' ? (
+                <a href="mailto:Sincere@april.biz">{user?.name}</a>
+              ) : (
+                <p>{error}</p>
+              )}
             </p>
           </div>
         </div>

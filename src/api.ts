@@ -21,5 +21,10 @@ function get<T>(url: string): Promise<T> {
 
 export const getTodos = () => get<Todo[]>('/todos');
 
-export const getUser = (userId: number | undefined) =>
-  get<User>(`/users/${userId}`);
+export const getUser = (userId: number | undefined) => {
+  if (typeof userId === undefined) {
+    throw new Error('Invalid path');
+  }
+
+  return get<User>(`/users/${userId}`);
+}
