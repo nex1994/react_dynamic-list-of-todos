@@ -82,9 +82,9 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
               {' by '}
 
               {error === '' ? (
-                <a href="mailto:Sincere@april.biz">{user?.name}</a>
+                <a href={user?.email}>{user?.name}</a>
               ) : (
-                <p>Invalid email address</p>
+                <p>{error}</p>
               )}
             </p>
           </div>
