@@ -9,20 +9,28 @@ type Props = {
   todo: Todo | undefined;
 };
 
+const STATUS = {
+  resolved: 'resolved',
+  rejected: 'rejected',
+  idle: 'idle',
+  pending: 'pending',
+} as const;
+
 export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userLoaded, setUserLoaded] = useState<boolean>(false);
+  const [userStatus, setUserStatus] = useState<string>(STATUS.idle);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setUserLoaded(false);
+    setUserStatus(STATUS.pending);
     const loadData = () => {
       getUser(todo?.userId)
         .then(data => {
           setUser(data);
-          setUserLoaded(true);
+          setUserStatus(STATUS.resolved);
         })
         .catch(() => {
+          setUserStatus(STATUS.rejected);
           setError('User cant be found. Please try again later');
         });
     };
@@ -33,9 +41,12 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
   return (
     <>
       <div className="modal is-active" data-cy="modal">
-        <div className="modal-background" />
+        <div
+          className="modal-background"
+          onClick={() => setSelectedTask(null)}
+        />
 
-        <div className="modal-card">
+        <div className="modal-card" onClick={e => e.stopPropagation()}>
           <header className="modal-card-head">
             <div
               className="modal-card-title has-text-weight-medium"
@@ -57,7 +68,7 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
             <p className="block" data-cy="modal-title">
               {todo?.title}
             </p>
-            {!userLoaded && <Loader />}
+            {userStatus === STATUS.pending && <Loader />}
             <p className="block" data-cy="modal-user">
               {/* <strong className="has-text-success">Done</strong> */}
               <strong
@@ -73,7 +84,7 @@ export const TodoModal: React.FC<Props> = ({ setSelectedTask, todo }) => {
               {error === '' ? (
                 <a href="mailto:Sincere@april.biz">{user?.name}</a>
               ) : (
-                <p>{error}</p>
+                <p>Invalid email address</p>
               )}
             </p>
           </div>

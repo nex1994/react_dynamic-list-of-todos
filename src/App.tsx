@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import 'bulma/css/bulma.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 
@@ -10,51 +10,66 @@ import { Loader } from './components/Loader';
 import { Todo } from './types/Todo';
 import { getTodos } from './api';
 
-export type FilterByCompletion = 'all' | 'active' | 'completed';
+export const FILTER = {
+  all: 'all',
+  active: 'active',
+  completed: 'completed',
+} as const;
+
+const STATUS = {
+  resolved: 'resolved',
+  rejected: 'rejected',
+  idle: 'idle',
+  pending: 'pending',
+} as const;
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[] | null | undefined>(null);
-  const [selectedTask, setSelectedTask] = useState<number | null>(null);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [completeStatus, setCompleteStatus] = useState<string>('all');
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [status, setStatus] = useState<string>(STATUS.idle);
+  const [completeStatus, setCompleteStatus] = useState<string>(FILTER.all);
   const [searchInput, setSearchInput] = useState<string>('');
   const [error, setError] = useState('');
 
-  const todo = todos?.find(t => t.id === selectedTask);
-  let filteredTodos = todos;
+  const todo = todos?.find(t => t.id === selectedTaskId);
 
-  switch (completeStatus) {
-    case 'active':
-      filteredTodos = todos?.filter(task => task.completed === false);
-      break;
-    case 'completed':
-      filteredTodos = todos?.filter(task => task.completed === true);
-      break;
-    case 'all':
-      filteredTodos = todos;
-      break;
-    default:
-      break;
-  }
+  const filteredTodos = useMemo(() => {
+    const normalizedSearch = searchInput.toLowerCase().trim();
+    let filtered = todos;
 
-  filteredTodos = filteredTodos?.filter(searchedTodo => {
-    return searchedTodo.title
-      .toLowerCase()
-      .trim()
-      .includes(searchInput.toLowerCase().trim())
-      ? searchedTodo
-      : null;
-  });
+    switch (completeStatus) {
+      case FILTER.active:
+        filtered = todos?.filter(task => !task.completed);
+        break;
+      case FILTER.completed:
+        filtered = todos?.filter(task => task.completed);
+        break;
+      case FILTER.all:
+        break;
+      default: {
+        throw new Error('Invalid complete status');
+      }
+    }
+
+    if (!normalizedSearch) {
+      return filtered;
+    }
+
+    return filtered?.filter(t =>
+      t.title.toLowerCase().trim().includes(normalizedSearch),
+    );
+  }, [completeStatus, todos, searchInput]);
 
   useEffect(() => {
-    setIsLoaded(false);
+    setStatus(STATUS.pending);
     const loadData = () => {
       getTodos()
         .then(data => {
           setTodos(data);
-          setIsLoaded(true);
+          setStatus(STATUS.resolved);
         })
         .catch(() => {
+          setStatus(STATUS.rejected);
           setError('Todos cant be loaded. Try again later');
         });
     };
@@ -68,7 +83,7 @@ export const App: React.FC = () => {
         <div className="container">
           <div className="box">
             <h1 className="title">Todos:</h1>
-            {error !== '' && <p>{error}</p>}
+            {status === STATUS.rejected && <p>{error}</p>}
             <div className="block">
               <TodoFilter
                 searchInput={searchInput}
@@ -78,19 +93,19 @@ export const App: React.FC = () => {
             </div>
 
             <div className="block">
-              {!isLoaded && <Loader />}
+              {status === STATUS.pending && <Loader />}
               <TodoList
-                selectedTask={selectedTask}
+                selectedTask={selectedTaskId}
                 filteredTodos={filteredTodos}
-                setSelectedTask={setSelectedTask}
+                setSelectedTask={setSelectedTaskId}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {selectedTask !== null && (
-        <TodoModal setSelectedTask={setSelectedTask} todo={todo} />
+      {selectedTaskId !== null && (
+        <TodoModal setSelectedTask={setSelectedTaskId} todo={todo} />
       )}
     </>
   );

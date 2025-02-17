@@ -1,5 +1,6 @@
 import React from 'react';
 import { Todo } from '../../types/Todo';
+import cn from 'classnames';
 
 type Props = {
   filteredTodos: Todo[] | null | undefined;
@@ -29,6 +30,13 @@ export const TodoList: React.FC<Props> = ({
 
       <tbody>
         {filteredTodos?.map(todo => {
+          const toggleModal = cn(
+            todo.id === selectedTask ? 'far fa-eye-slash' : 'far fa-eye',
+          );
+          const textCompletionColor = cn(
+            todo.completed ? 'has-text-success' : 'has-text-danger',
+          );
+
           return (
             <tr key={todo.id} data-cy="todo" className="">
               <td className="is-vcentered">{todo.id}</td>
@@ -40,13 +48,7 @@ export const TodoList: React.FC<Props> = ({
                 )}
               </td>
               <td className="is-vcentered is-expanded">
-                <p
-                  className={
-                    todo.completed ? 'has-text-success' : 'has-text-danger'
-                  }
-                >
-                  {todo.title}
-                </p>
+                <p className={textCompletionColor}>{todo.title}</p>
               </td>
               <td className="has-text-right is-vcentered">
                 <button
@@ -56,13 +58,7 @@ export const TodoList: React.FC<Props> = ({
                   type="button"
                 >
                   <span className="icon">
-                    <i
-                      className={
-                        todo.id === selectedTask
-                          ? 'far fa-eye-slash'
-                          : 'far fa-eye'
-                      }
-                    />
+                    <i className={toggleModal} />
                   </span>
                 </button>
               </td>
